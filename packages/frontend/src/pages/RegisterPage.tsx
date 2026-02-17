@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { register as registerThunk } from '../store/slices/authSlice';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import toast from 'react-hot-toast';
@@ -13,7 +14,7 @@ export function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const result = await register(form);
-    if (register.fulfilled.match(result)) {
+    if (registerThunk.fulfilled.match(result)) {
       toast.success('Account created! Please check your email to verify.');
       navigate('/login');
     }

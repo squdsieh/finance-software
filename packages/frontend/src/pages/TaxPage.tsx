@@ -30,7 +30,7 @@ export function TaxPage() {
       <div className="flex items-center gap-2">
         <Percent size={14} className="text-gray-400" />
         <span className="font-medium">{r.name}</span>
-        {r.isDefault && <Badge variant="info" size="sm">Default</Badge>}
+        {r.isDefault && <Badge variant="info">Default</Badge>}
       </div>
     )},
     { key: 'code', header: 'Code' },
