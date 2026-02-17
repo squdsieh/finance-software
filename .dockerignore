@@ -1,0 +1,67 @@
+# =============================================================================
+# CloudBooks Pro - Docker Ignore
+# =============================================================================
+
+# Dependencies (will be installed inside the container)
+node_modules
+**/node_modules
+
+# Build outputs (will be built inside the container)
+dist
+**/dist
+build
+**/build
+
+# Test and coverage
+coverage
+**/coverage
+.nyc_output
+**/.nyc_output
+**/test-results
+
+# Version control
+.git
+.gitignore
+
+# Environment files (secrets must be injected via Docker env vars or secrets)
+.env
+.env.*
+**/.env
+**/.env.*
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Docker (avoid recursive context)
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+.dockerignore
+
+# CI/CD configuration
+.github
+
+# Documentation
+*.md
+LICENSE
+
+# Temporary files
+temp
+tmp
+uploads
+
+# TypeScript build info
+*.tsbuildinfo
