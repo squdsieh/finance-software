@@ -212,13 +212,11 @@ export class AuthService {
     }
 
     // Generate tokens
-    const tokenPayload: TokenPayload = {
+    const tokenPayload = {
       userId: user.id,
       tenantId: tenant.id,
       roleId: tenantUser.role_id,
       permissions: permissionStrings,
-      iat: Math.floor(Date.now() / 1000),
-      exp: 0, // Set by jwt.sign
     };
 
     const accessToken = jwt.sign(tokenPayload, config.jwt.secret, {
@@ -310,13 +308,11 @@ export class AuthService {
       permissionStrings.push('*');
     }
 
-    const tokenPayload: TokenPayload = {
+    const tokenPayload = {
       userId: user.id,
       tenantId: matchedSession.tenant_id,
       roleId: tenantUser.role_id,
       permissions: permissionStrings,
-      iat: Math.floor(Date.now() / 1000),
-      exp: 0,
     };
 
     const accessToken = jwt.sign(tokenPayload, config.jwt.secret, {
