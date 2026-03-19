@@ -1,7 +1,0 @@
-{
-  "name": "Instabuy CRM",
-  "description": "Abu Dhabi's premier automotive solution CRM. Redefining vehicle ownership with direct, bank-free installments and Gemini-powered market analysis.",
-  "requestFramePermissions": [
-    "geolocation"
-  ]
-}

@@ -1,0 +1,32 @@
+import { Router } from 'express';
+import { BankingController } from './banking.controller';
+import { authenticate, authorize } from '../../middleware/auth';
+import { requireTenant } from '../../middleware/tenant';
+
+const controller = new BankingController();
+export const bankingRouter = Router();
+bankingRouter.use(authenticate);
+bankingRouter.use(requireTenant);
+
+bankingRouter.get('/accounts', controller.listAccounts);
+bankingRouter.post('/accounts', authorize('banking:create'), controller.createAccount);
+bankingRouter.put('/accounts/:id', authorize('banking:edit'), controller.updateAccount);
+bankingRouter.post('/accounts/:id/connect', authorize('banking:edit'), controller.connectBank);
+bankingRouter.post('/accounts/:id/sync', authorize('banking:edit'), controller.syncTransactions);
+bankingRouter.post('/accounts/:id/import', authorize('banking:create'), controller.importTransactions);
+bankingRouter.get('/transactions', controller.listTransactions);
+bankingRouter.put('/transactions/:id/categorize', authorize('banking:edit'), controller.categorizeTransaction);
+bankingRouter.put('/transactions/:id/match', authorize('banking:edit'), controller.matchTransaction);
+bankingRouter.post('/transactions/:id/split', authorize('banking:edit'), controller.splitTransaction);
+bankingRouter.put('/transactions/:id/exclude', authorize('banking:edit'), controller.excludeTransaction);
+bankingRouter.get('/rules', controller.listRules);
+bankingRouter.post('/rules', authorize('banking:create'), controller.createRule);
+bankingRouter.put('/rules/:id', authorize('banking:edit'), controller.updateRule);
+bankingRouter.delete('/rules/:id', authorize('banking:delete'), controller.deleteRule);
+bankingRouter.get('/reconciliations', controller.listReconciliations);
+bankingRouter.post('/reconciliations', authorize('banking:create'), controller.startReconciliation);
+bankingRouter.put('/reconciliations/:id', authorize('banking:edit'), controller.updateReconciliation);
+bankingRouter.post('/reconciliations/:id/complete', authorize('banking:edit'), controller.completeReconciliation);
+bankingRouter.post('/reconciliations/:id/undo', authorize('banking:edit'), controller.undoReconciliation);
+bankingRouter.post('/transfers', authorize('banking:create'), controller.createTransfer);
+bankingRouter.post('/deposits', authorize('banking:create'), controller.createDeposit);

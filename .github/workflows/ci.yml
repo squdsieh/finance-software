@@ -1,0 +1,199 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, 'release/**']
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+  CI: true
+
+# Cancel previous runs for the same branch/PR to save resources
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ===========================================================================
+  # Lint: ESLint + Prettier
+  # ===========================================================================
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Prettier check
+        run: npx prettier --check "**/*.{ts,tsx,json,md}"
+
+  # ===========================================================================
+  # Backend Tests
+  # ===========================================================================
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cloudbooks_test
+          POSTGRES_USER: cloudbooks_test
+          POSTGRES_PASSWORD: cloudbooks_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cloudbooks_test -d cloudbooks_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: cloudbooks_test
+      DB_USER: cloudbooks_test
+      DB_PASSWORD: cloudbooks_test_password
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      JWT_SECRET: ci-test-jwt-secret-long-enough-for-signing
+      ENCRYPTION_KEY: ci-test-encryption-key-32-chars-!
+      APP_URL: http://localhost:5173
+      API_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build -w packages/shared
+
+      - name: Run backend tests with coverage
+        run: npm run test:coverage -w packages/backend
+
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: packages/backend/coverage/
+          retention-days: 7
+
+  # ===========================================================================
+  # Frontend Tests
+  # ===========================================================================
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build -w packages/shared
+
+      - name: Run frontend tests with coverage
+        run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile=packages/frontend/test-results/junit.xml
+        working-directory: packages/frontend
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: packages/frontend/coverage/
+          retention-days: 7
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-results
+          path: packages/frontend/test-results/
+          retention-days: 7
+
+  # ===========================================================================
+  # Build
+  # ===========================================================================
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, test-backend, test-frontend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build -w packages/shared
+
+      - name: Build backend
+        run: npm run build -w packages/backend
+
+      - name: Build frontend
+        run: npm run build -w packages/frontend
+
+      - name: Upload frontend build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: packages/frontend/dist/
+          retention-days: 7
+
+      - name: Upload backend build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: packages/backend/dist/
+          retention-days: 7

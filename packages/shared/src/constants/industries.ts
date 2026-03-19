@@ -1,0 +1,18 @@
+export const INDUSTRIES = [
+  { value: 'professional_services', label: 'Professional Services' },
+  { value: 'retail', label: 'Retail' },
+  { value: 'manufacturing', label: 'Manufacturing' },
+  { value: 'construction', label: 'Construction' },
+  { value: 'technology', label: 'Technology' },
+  { value: 'nonprofit', label: 'Nonprofit' },
+  { value: 'healthcare', label: 'Healthcare' },
+  { value: 'real_estate', label: 'Real Estate' },
+  { value: 'food_beverage', label: 'Food & Beverage' },
+  { value: 'transportation', label: 'Transportation' },
+  { value: 'education', label: 'Education' },
+  { value: 'agriculture', label: 'Agriculture' },
+  { value: 'hospitality', label: 'Hospitality' },
+  { value: 'media', label: 'Media' },
+  { value: 'consulting', label: 'Consulting' },
+  { value: 'other', label: 'Other' },
+] as const;
