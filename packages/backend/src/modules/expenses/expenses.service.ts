@@ -155,7 +155,41 @@ export class ExpensesService {
     });
   }
 
-  async invoiceBillableExpenses(_ctx: ServiceContext, _customerId: string) {
-    return { message: 'Billable expense invoicing placeholder' };
+  async invoiceBillableExpenses(ctx: ServiceContext, customerId: string) {
+    if (!customerId) throw new AppError('customerId is required', 400);
+
+    const schema = ctx.tenantSchema;
+    const lineItems = await this.db.withSchema(schema).table('expense_line_items as eli')
+      .join(`${schema}.expenses as e`, 'e.id', 'eli.expense_id')
+      .leftJoin(`${schema}.vendors as v`, 'v.id', 'e.vendor_id')
+      .where('eli.is_billable', true)
+      .where('eli.customer_id', customerId)
+      .where('e.is_deleted', false)
+      .select(
+        'eli.id as line_item_id',
+        'eli.expense_id',
+        'eli.description',
+        'eli.amount',
+        'eli.tax_code_id',
+        'eli.tax_amount',
+        'eli.project_id',
+        'e.date',
+        'e.currency',
+        'e.vendor_id',
+        'v.display_name as vendor_name',
+      )
+      .orderBy('e.date', 'asc');
+
+    const totalAmount = lineItems.reduce(
+      (sum, item) => sum.plus(new Decimal(item.amount || 0)),
+      new Decimal(0),
+    );
+
+    return {
+      customerId,
+      count: lineItems.length,
+      totalAmount: totalAmount.toFixed(2),
+      lineItems,
+    };
   }
 }
